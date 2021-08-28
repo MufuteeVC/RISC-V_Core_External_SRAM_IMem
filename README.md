@@ -1,7 +1,26 @@
+# 4-stage RISC-V Core
+  This repository contains information and codes of the 4-stage Pipelined RISC-V Core (and calculator) designed during the [RISC-V MYTH Workshop](https://github.com/stevehoover/RISC-V_MYTH_Workshop). The core supports the RV32I Base Integer Instruction Set and it is developed in [TL-Verilog](http://tl-x.org/) using [Makerchip](https://makerchip.com/).
+
 # Design of 1024x32 SRAM (4KB) using OpenRAM and SKY130 PDKs 
   This aims at design of 1024x32 SRAM cell array (4KB) with a configuration of 1.8 V operating voltage and access time less than 2.5ns using Google SkyWater SKY130 PDKs and OpenRAM memory complier.
-  
+
 # Table of Contents
+  - [Introduction To RISC-V ISA](#Introduction-to-risc-v-isa)
+  - [Compiler Toolchain](#compiler-toolchain)
+  - [Application Binary Interface](#application-binary-interface)
+  - [RTL Design Using TL-Verilog and MakerChip](#rtl-design-using-tl-verilog-and-makerchip)
+      - [Designing a Simple Calculator](#designing-a-simple-calculator)
+      - [Pipelining the Calculator](#pipelining-the-calculator)
+      - [Adding Validity to Calculator](#adding-validity-to-calculator)
+  - [Basic RISC-V Core](#basic-risc-v-core)
+      - [Program Counter and Instruction Fetch](#program-counter-and-instruction-fetch)
+      - [Instruction Decode and Read Register File](#instruction-decode-and-read-register-file)
+      - [Execute Instruction and Write Register File](#execute-instruction-and-write-register-file)
+  - [Pipelined RISC-V Core](#pipelined-risc-v-core)
+  - [Final 4-Stage RISC-V Core](#final-4-stage-risc-v-core)
+      - [Final RISC-V Core](#final-risc-v-core)
+      - [Code Comparison](#code-comparison)
+
   - [Introduction To SRAM Cell Design](#introduction-to-sram-cell-design)
   - [Setting Up Environment](#setting-up-environment)
       - [Open-Source Tools Used](#open-source-tools-used)
@@ -30,11 +49,168 @@
       6. [D-Flip-Flop](#6-d-flip-flop)
       - [1-bit SRAM](#1-bit-sram)
   - [OpenRAM Compiler Output Layout](#openram-compiler-output-layout)
+  - [Contact Information](#contact-information)
+
   - [Future Work](#future-work)
   - [References](#references)
   - [Acknowledgement](#acknowledgement)
-  - [Contact Information](#contact-information)
 
+# Introduction To RISC-V ISA
+RISC-V is a new ISA that's available under open, free and non-restrictive licences. RISC-V ISA delivers a new level of free, extensible software and hardware freedom on architecture.
+
+  ## Why RISC-V?
+  - Far simple and smaller than commercial ISAs.
+  - Avoids micro-architecture or technology dependent features.
+  - Small standard base ISA.
+  - Multiple Standard Extensions.
+  - Variable-length instruction encoding
+
+  For more information about [RISC-V ISA](https://github.com/riscv/riscv-isa-manual)
+ 
+# Compiler Toolchain
+Toolchain simply is a set of tools used to compile a piece of code to produce a executable program. Similar to other ISAs RISC-V also has its own toolchain. 
+Mentioned below are steps to use RISC-V toolchain
+
+  ### Using RISC-V Complier:
+    riscv64-unknown-elf-gcc -<compiler options> -mabi=<ABI options> -march=<Architecture options> -o <object filename> <C Program filename>
+  - \<compiler options\>    : O1, Ofast
+  - \<ABI options\>         : lp64, lp32
+  - \<Architecture options\>: RV64, RV32
+  
+  ### Viewing the assembly language code:
+    riscv64-unknown-elf-objdump -d <object filename>
+  
+  ### Simulating the object file using SPIKE simulator:
+    spike pk <object filename>
+    
+  ### Debugging the object file using SPIKE:
+    spike -d pk <object Filename>
+
+# Application Binary Interface
+Every application program runs in a particular environment, which "Application Execution Environment". How the application interfaces with the underlying execution environment is called the "Application Binary Interface (ABI)". 
+
+The Application Binary Interface is the sum total of what the application programmer needs to understand in order to write programs; the programmer does not have to understand or know what is going on within the Application Execution Environment.
+
+An Application Binary Interface would combine the processor ISA along with the OS system-call interface. The below snippet gives the list of registers, thier short description and ABI name of every register in RISC-V ISA.
+ 
+   <img src="Diagrams/images/abi_names.JPG" height="600"/>
+
+# RTL Design Using TL-Verilog and Makerchip
+[Makerchip](http://makerchip.com/) is a free online environment for developing high-quality integrated circuits. You can code, compile, simulate, and debug Verilog designs, all from your browser. Your code, block diagrams, and waveforms are tightly integrated.
+
+Following are some unique features of TL-Verilog:
+  - Supports "Timing Abstraction"
+  - Easy Pipelining
+  - TL-Verilog removes the need always blocks, flip-flops.
+  - Compiler available converts TL-Verilog to Verilog, which can be easily synthesized.
+
+    <img src="http://makerchip.com/assets/homepage/MakerchipSplash.png" height="500">
+
+  ## Designing a Simple Calculator
+  A simple implementation of a single stage basic calculator is done in TL-Verilog. The calculator will have two 32-bit input data and one 3-bit opcode. Depending upon the opcode value, calculator operation is selected.
+  
+  The below snippet shows the implementation in Makerchip. Here all the working of the calculator is done in a single stage.
+  
+  <img src="Diagrams/images/calc_simple1.JPG" height="500">
+    
+  ## Pipelining the Calculator
+  The simple calculator developed above is pipelined using TL-Verilog. It seems very easy in TL-Verilog. No need of `always_ff @ (clk)` or any flip-flops, the pipelining can be done just by using `|calc` for defining pipeline and `@1` or `@2` for writing stages of pipeline. 
+  
+  The below snippet shows that in the pipeline Stage-1 is used for accepting inputs and Stage-2 for arithmetic operations.
+    
+  <img src="Diagrams/images/calc_pipelined1.JPG" height="500">
+    
+  ## Adding Validity to Calculator
+  TL-Verilog supports a very unique feature called `validity`. Using validity, we can define tha condition when a specific signal will hold a valid content. The validity condition is written using `?$valid_variable_name`.
+  
+  The below snippet shows the implementation of validity. The calculator operation will only be carried out when there is no reset and it is a valid cycle.
+  
+   <img src="Diagrams/images/calc_validity1.JPG" height="500">
+   
+   The detailed TL-Verilog code for the calculator can be found [here](RISC-V_Core_4_Stage/calculator_solutions.tlv) 
+
+# Basic RISC-V Core
+  This section will cover the implementation of a simple 3-stage RISC-V Core / CPU. The 3-stages broadly are: Fetch, Decode and Execute.
+  The diagram below is the basic block of the CPU core.
+  
+   <img src="Diagrams/images/riscv_block_diagram.JPG" height="400">
+   
+   ## Program Counter and Instruction Fetch
+   Program Counter, also called as Instruction Pointer is a block which contains the address of the next instruction to be executed. It is feed to the instruction memory, which in turn gives out the instruction to be executed. The program counter is incremented by 4, every valid iteration.
+   The output of the program counter is used for fetching an instruction from the instruction memory. The instruction memory gives out a 32-bit instruction depending upon the input address.
+   The below snippet shows the Program Counter and Instruction Fetch Implementation in Makerchip.
+   
+   <img src="Diagrams/images/rv_pc_instr_fetch.JPG" height="500">
+   
+   ## Instruction Decode and Read Register File
+   The 32-bit fetched instruction has to be decoded first to determine the operation to be performed and the source / destination address. Instruction Type is first identified on the opcode bits of instruction. The instruction type can R, I, S, B, U, J.
+   Every instruction has a fixed format defined in the RISC-V ISA. Depending on the formats, the following fields are determined:
+   - `opcode`, `funct3`, `funct7` -> Specifies the Operation
+   - `imm` -> Immediate values / Offsets
+   - `rs1`, `rs2` -> Source register index
+   - `rd` -> Destination register index
+   
+   Generally, RISC-V ISA provides 32 Register each of width = `XLEN` (for example, XLEN = 32 for RV32) 
+   Here, the register file used allows 2 - reads and 1 - write simultaneously.
+   
+   The below snippet shows the Decode and Read Register Implementation in Makerchip.
+   
+   <img src="Diagrams/images/rv_decode_rf.JPG" height="500">
+   
+   ## Execute Instruction and Write Register File
+   Depending upon the decoded operation, the instruction is executed. Arithmetic and Logical Unit (ALU) used if required. If the instruction is a branching instruction the target branch address is computed separately.
+   After the instruction is executed, the result of stored back to the Register File, depending upon the destination register index.
+   The below snippet shows the Instruction Execute and Write Register File Implementation in Makerchip.
+   
+   <img src="Diagrams/images/rv_execute_rf.JPG" height="500">
+
+# Pipelined RISC-V Core
+  Pipelining processes increases the overall performance of the system. Thus, the previously designed cores can be pipelined. The "Timing Abstraction" feature of TL-Verilog makes it easy.
+  
+  ## Pipelining the Core
+  Pipelining in TL-Verilog can be done in following way:
+  
+    |<pipe_name>
+    @<pipe_stage>
+       Instructions present in this stage
+    @<pipe_stage>
+       Instructions present in this stage
+  
+  There are various hazards to be taken into consideration while implementing a pipelined design. Some of hazards taken under consideration are:
+   - Improper Updating of Program Counter (PC)
+   - Read-before-Write Hazard
+   
+  ## Load and Store Data
+  A Data memory can be added to the Core. The Load-Store operations will add up a new stage to the core. Thus, making it now a 4-Stage Core / CPU.
+  
+  The proper functioning of the RISC-V core can be ensured by introducing some testcases to the code. 
+  For example, if program for summation of positive integers from 1 to 9 and storing it to specific register can be verified by:
+  
+      *passed = |cpu/xreg[17]>>5$value == (1+2+3+4+5+6+7+8+9);
+      
+   Here, `xreg[17]` is the register holding the final result.
+   
+# Final 4-Stage RISC-V Core
+  After pipelining is proved in simulations, the operations for Jump Instructions are added. Also, added Instruction Decode and ALU Implementation for RV32I Base Integer Instruction Set.
+  
+  The snippet below shows the successful implementation of 4-stage RISC-V Core
+  
+  <img src="Diagrams/images/final_core.JPG" height="500">
+  
+  The complete TL-Verilog code for 4-Stage RISC-V Core can be found [here](RISC-V_Core_4_Stage/risc-v_solutions.tlv) 
+  
+  ## Final RISC-V Core
+  
+  <img src="Diagrams/images/my_risc_v_core.svg">
+  
+  ## Code Comparison
+  The SandPiper Compiler generated ~90,000 characters of SystemVerilog from ~25,000 characters of TL-Verilog. Among the ~90,000 characters of SystemVerilog, only ~18,000 is actual logic.
+  
+  The snippet below shows the code comparison of TL-Verilog and SystemVerilog.
+  
+  <img src="Diagrams/images/code_compare.JPG" height="500">
+  
+  
 # Introduction To SRAM Cell Design
   Static Random-Access Memory (SRAM) is a standard element of modern architectures including Application Specific Integrated Circuit (ASIC), System-On-Chip (SoC), Field Programmable Gate Array (FPGA) and others. For these wide variety of applications, SRAMs are configured using parameters like alpha ratio, beta ratio, gamma ratio, operating voltage in the physical level and word-length, access time, and most importantly the technology node at the architectural level.
   
@@ -494,14 +670,14 @@ A template file named `myconfig_sky130.py` is added in the repository. The file 
 
   OpenRAM is invoked using the following command
 ```
-  python3 $OPENRAM_HOME/openram.py myconfig_sky130
-  
-  or
-  
   python3 $OPENRAM_HOME/openram.py myconfig_sky130.py
 ```
 
-  <img src="OpenRAM/images/sram_1024_32_1.JPG">
+  <img src="Diagrams/1.JPG">
+  <img src="Diagrams/2.JPG">
+  <img src="Diagrams/3.JPG">
+  <img src="Diagrams/4.JPG">
+  <img src="Diagrams/5.JPG">
 
 ### Active Layer and Active Contact
 Sky130 do not consist any layer named `active` or `active_contact` as that in case of other default technologies.
@@ -518,8 +694,6 @@ The default `active` layer corresponds to `diff` (active diffusion) layer in SKY
 
 ### Missing Boundary layer definition
 One of the major issue in OpenRAM configuration is, the SKY130 PDK do not have boundary layer definition for drawing purpose in the [GDS layer description provided by SkyWater](https://docs.google.com/spreadsheets/d/1oL6ldkQdLu-4FEQE0lX6BcgbqzYfNnd1XA8vERe0vpE/edit#gid=0). But OpenRAM compiler expects a boundary layer to compute the cell area and to avoid overlapping of cells.
-
-  <img src="OpenRAM/images/openram_boundary_issue.JPG">
 
 # Schematic and Simulations
 
@@ -696,6 +870,10 @@ One of the major issue in OpenRAM configuration is, the SKY130 PDK do not have b
   Integrate the external SRAM memory to serve as an external instruction memory with a RISC-V core 
 
 # References
+  - RISC-V ISA Manual: https://github.com/riscv/riscv-isa-manual/
+  - RISC-V: https://riscv.org/
+  - Makerchip : https://makerchip.com/
+
   - VLSI System Design: https://www.vlsisystemdesign.com/
   - Efabless OpenLANE: https://github.com/efabless/openlane
   - OpenRAM: https://vlsida.github.io/OpenRAM/
@@ -705,6 +883,7 @@ One of the major issue in OpenRAM configuration is, the SKY130 PDK do not have b
 # Acknowledgement
   - [Kunal Ghosh](https://github.com/kunalg123), Co-founder, VSD Corp. Pvt. Ltd.
   - [Shon Taware](https://www.linkedin.com/in/Shon-Taware), M. Tech Embedded Systems and VLSI Design
+  - [Steve Hoover](https://github.com/stevehoover), Founder, Redwood EDA
   
 # Contact Information
   - [Mufutau Akuruyejo](https://www.linkedin.com/in/MuFuTeeVC/), MS Electrical and Computer Engineering, GaTech
