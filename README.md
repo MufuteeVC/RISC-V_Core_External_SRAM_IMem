@@ -1,8 +1,6 @@
-# 4-stage RISC-V Core
+# Design of 4-stage RISC-V Core using Makerchip and 1024x32 SRAM (4KB) using OpenRAM and SKY130 PDKs 
   This repository contains information and codes of the 4-stage Pipelined RISC-V Core (and calculator) designed during the [RISC-V MYTH Workshop](https://github.com/stevehoover/RISC-V_MYTH_Workshop). The core supports the RV32I Base Integer Instruction Set and it is developed in [TL-Verilog](http://tl-x.org/) using [Makerchip](https://makerchip.com/).
-
-# Design of 1024x32 SRAM (4KB) using OpenRAM and SKY130 PDKs 
-  This aims at design of 1024x32 SRAM cell array (4KB) with a configuration of 1.8 V operating voltage and access time less than 2.5ns using Google SkyWater SKY130 PDKs and OpenRAM memory complier.
+  It also contains a design of 1024x32 SRAM cell array (4KB) with a configuration of 1.8 V operating voltage and access time less than 2.5ns using Google SkyWater SKY130 PDKs and OpenRAM memory complier.
 
 # Table of Contents
   - [Introduction To RISC-V ISA](#Introduction-to-risc-v-isa)
@@ -19,7 +17,6 @@
   - [Pipelined RISC-V Core](#pipelined-risc-v-core)
   - [Final 4-Stage RISC-V Core](#final-4-stage-risc-v-core)
       - [Final RISC-V Core](#final-risc-v-core)
-      - [Code Comparison](#code-comparison)
 
   - [Introduction To SRAM Cell Design](#introduction-to-sram-cell-design)
   - [Setting Up Environment](#setting-up-environment)
@@ -202,14 +199,6 @@ Following are some unique features of TL-Verilog:
   ## Final RISC-V Core
   
   <img src="Diagrams/images/my_risc_v_core.svg">
-  
-  ## Code Comparison
-  The SandPiper Compiler generated ~90,000 characters of SystemVerilog from ~25,000 characters of TL-Verilog. Among the ~90,000 characters of SystemVerilog, only ~18,000 is actual logic.
-  
-  The snippet below shows the code comparison of TL-Verilog and SystemVerilog.
-  
-  <img src="Diagrams/images/code_compare.JPG" height="500">
-  
   
 # Introduction To SRAM Cell Design
   Static Random-Access Memory (SRAM) is a standard element of modern architectures including Application Specific Integrated Circuit (ASIC), System-On-Chip (SoC), Field Programmable Gate Array (FPGA) and others. For these wide variety of applications, SRAMs are configured using parameters like alpha ratio, beta ratio, gamma ratio, operating voltage in the physical level and word-length, access time, and most importantly the technology node at the architectural level.
@@ -673,11 +662,11 @@ A template file named `myconfig_sky130.py` is added in the repository. The file 
   python3 $OPENRAM_HOME/openram.py myconfig_sky130.py
 ```
 
-  <img src="Diagrams/1.JPG">
-  <img src="Diagrams/2.JPG">
-  <img src="Diagrams/3.JPG">
-  <img src="Diagrams/4.JPG">
-  <img src="Diagrams/5.JPG">
+  <img src="Diagrams/my_config/1.JPG">
+  <img src="Diagrams/my_config/2.JPG">
+  <img src="Diagrams/my_config/3.JPG">
+  <img src="Diagrams/my_config/4.JPG">
+  <img src="Diagrams/my_config/5.JPG">
 
 ### Active Layer and Active Contact
 Sky130 do not consist any layer named `active` or `active_contact` as that in case of other default technologies.
