@@ -662,11 +662,11 @@ A template file named `myconfig_sky130.py` is added in the repository. The file 
   python3 $OPENRAM_HOME/openram.py myconfig_sky130.py
 ```
 
-  <img src="Diagrams/my_config/1.JPG">
-  <img src="Diagrams/my_config/2.JPG">
-  <img src="Diagrams/my_config/3.JPG">
-  <img src="Diagrams/my_config/4.JPG">
-  <img src="Diagrams/my_config/5.JPG">
+  <img src="Diagrams/my_config/1.png">
+  <img src="Diagrams/my_config/2.png">
+  <img src="Diagrams/my_config/3.png">
+  <img src="Diagrams/my_config/4.png">
+  <img src="Diagrams/my_config/5.png">
 
 ### Active Layer and Active Contact
 Sky130 do not consist any layer named `active` or `active_contact` as that in case of other default technologies.
