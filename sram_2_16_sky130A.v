@@ -43,7 +43,7 @@ module sram_2_16_sky130A(
     web0_reg = web0;
     addr0_reg = addr0;
     din0_reg = din0;
-    dout0 = 2'bx;
+    //dout0 = 2'bx;
     if ( !csb0_reg && web0_reg && VERBOSE ) 
       $display($time," Reading %m addr0=%b dout0=%b",addr0_reg,mem[addr0_reg]);
     if ( !csb0_reg && !web0_reg && VERBOSE )
