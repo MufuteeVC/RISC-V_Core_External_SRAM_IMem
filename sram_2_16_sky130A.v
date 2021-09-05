@@ -43,7 +43,7 @@ module sram_2_16_sky130A(
     web0_reg = web0;
     addr0_reg = addr0;
     din0_reg = din0;
-    #(T_HOLD) dout0 = 2'bx;
+    dout0 = 2'bx;
     if ( !csb0_reg && web0_reg && VERBOSE ) 
       $display($time," Reading %m addr0=%b dout0=%b",addr0_reg,mem[addr0_reg]);
     if ( !csb0_reg && !web0_reg && VERBOSE )
@@ -66,7 +66,7 @@ reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
   always @ (negedge clk0)
   begin : MEM_READ0
     if (!csb0_reg && web0_reg)
-       dout0 <= #(DELAY) mem[addr0_reg];
+       dout0 <= mem[addr0_reg];
   end
 
 endmodule
