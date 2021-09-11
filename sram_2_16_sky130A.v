@@ -11,7 +11,7 @@ module sram_2_16_sky130A(
     clk0,csb0,web0,addr0,din0,dout0
   );
 
-  parameter DATA_WIDTH = 2 ;
+  parameter DATA_WIDTH = 32 ;
   parameter ADDR_WIDTH = 4 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
   // FIXME: This delay is arbitrary.
@@ -57,7 +57,7 @@ reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
   always @ (negedge clk0)
   begin : MEM_WRITE0
     if ( !csb0_reg && !web0_reg ) begin
-        mem[addr0_reg][1:0] = din0_reg[1:0];
+        mem[addr0_reg][DATA_WIDTH-1:0] = din0_reg[DATA_WIDTH-1:0];
     end
   end
 
